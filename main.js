@@ -25,15 +25,18 @@ function getAnyExternalIpAddress() {
 
 var mraa = require("mraa");
 var fs = require('fs');
-var http = require('http');
-
-var ipAddress = getAnyExternalIpAddress();
-var port = 8080;
+var https = require('https');
 
 var io = new mraa.Gpio(13, true, false);
 io.dir(mraa.DIR_OUT); // configure the LED gpio as an output
 
-http.createServer(function (req, res) {
+var pk = fs.readFileSync('/node_app_slot/privatekey.pem');
+var pc = fs.readFileSync('/node_app_slot/certificate.pem');
+var opts = { key: pk, cert: pc };
+var ipAddress = getAnyExternalIpAddress();
+var port = 443;
+
+https.createServer(opts, function (req, res) {
     console.log('Handling request method',req.method,'url',req.url);
 
     if(req.url.startsWith('/api/')) {
