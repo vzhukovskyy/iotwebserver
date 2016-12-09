@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<head>
+    <title>IoT Web Server</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <table>
+        <tr>
+            <td>
+                <label class='label'>Light:</label>
+            </td>
+            <td>
+                <label class="switch" id='myLabel' for='myCheckbox'>
+                    <input type="checkbox" id='myCheckbox'>
+                    <div class="slider round"></div>
+                </label>
+            </td>
+        </tr>
+    </table>
+    
+    <script>
+        var myCheckbox = document.getElementById('myCheckbox');
+        myCheckbox.addEventListener('change', function(evt) {
+            console.log('change!', evt);
+            var http = new XMLHttpRequest();
+            var url = "/api/setSwitchState";
+            var params = JSON.stringify({state:myCheckbox.checked});
+            http.open("POST", url, true);
+            
+            http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+            
+//            http.onreadystatechange = function() {//Call a function when the state changes.
+//            if(http.readyState == 4 && http.status == 200) {
+//                alert(http.responseText);
+//            }
+                
+            http.send(params);
+        });
+        
+        function httpGetAsync(theUrl, callback) {
+            var xmlHttp = new XMLHttpRequest();
+            xmlHttp.onreadystatechange = function() { 
+                if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                    callback(xmlHttp.responseText);
+            }
+            xmlHttp.open("GET", theUrl, true); // true for asynchronous 
+            xmlHttp.send(null);
+        }
+        
+        httpGetAsync("/api/getSwitchState", function(json) {
+            var data = JSON.parse(json);
+            myCheckbox.checked = data.state;
+        });
+
+    </script>
+</body>
