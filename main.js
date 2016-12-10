@@ -3,42 +3,36 @@
 /*jshint unused:true, undef:true */
 // see http://www.jslint.com/help.html and http://jshint.com/docs
 
-function getAnyExternalIpAddress() {
-    var ip;
-    
-    var os = require('os');
-    var ifaces = os.networkInterfaces();
-
-    Object.keys(ifaces).forEach(function (ifname) {
-
-        ifaces[ifname].forEach(function (iface) {
-            if ('IPv4' === iface.family && iface.internal === false) {
-                ip = iface.address;
-            }
-        });
-        
-    });
-    
-    console.log(ip);
-    return ip;
-}
-
 var mraa = require("mraa");
 var fs = require('fs');
+var http = require('http');
 var https = require('https');
+var net = require('./nettools');
+var auth = require('./auth');
 
 var io = new mraa.Gpio(13, true, false);
 io.dir(mraa.DIR_OUT); // configure the LED gpio as an output
 
 var pk = fs.readFileSync('/node_app_slot/privatekey.pem');
 var pc = fs.readFileSync('/node_app_slot/certificate.pem');
-var opts = { key: pk, cert: pc };
-var ipAddress = getAnyExternalIpAddress();
-var port = 443;
+var httpsOpts = { key: pk, cert: pc };
 
-https.createServer(opts, function (req, res) {
+var ipAddress = net.getAnyExternalIpAddress();
+var port = 8080;
+
+
+//https.createServer(httpsOpts, function (req, res) {
+http.createServer(function (req, res) {
     console.log('Handling request method',req.method,'url',req.url);
-
+    console.log('Headers',req.headers);
+    
+    if(!auth.authenticateIfNotAuthenticated(req, res)) {
+        console.log('No authorization data, responded 401');
+        return;
+    }
+    
+    console.log('Request authorized');
+    
     if(req.url.startsWith('/api/')) {
         handleApiCall(req, res);
     }
