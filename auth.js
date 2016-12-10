@@ -1,7 +1,7 @@
 module.exports = {
     authenticateIfNotAuthenticated: function(req, res) {
-        //return authenticateIfNotAuthenticatedDigest(req, res);
-        return authenticateIfNotAuthenticatedBasic(req, res);
+        return authenticateIfNotAuthenticatedDigest(req, res);
+        //return authenticateIfNotAuthenticatedBasic(req, res);
     },
     
     
@@ -22,90 +22,68 @@ function cryptoUsingMD5(data) {
 }
 
 function authenticateIfNotAuthenticatedDigest(req, res) {
-    if(!req.headers.authorization) {
-        authenticateUserDigest(res); // 401
-        return false;
-    }
+    if(req.headers.authorization && req.headers.authorization.startsWith('Digest ')) {
+        var authData = req.headers.authorization.substr(7);
     
-    var authInfo = req.headers.authorization.replace(/^Digest /, '');
-    authInfo = parseAuthenticationInfoDigest(authInfo);
-    
-    if (authInfo.username !== credentials.userName) {
-        authenticateUserDigest(res); 
-        return false;
-    }
-    
-    var digestAuthObject = {};
-    digestAuthObject.ha1 = cryptoUsingMD5(authInfo.username + ':' + credentials.realm + ':' + credentials.password);
-    digestAuthObject.ha2 = cryptoUsingMD5(req.method + ':' + authInfo.uri);
-    var resp = cryptoUsingMD5([digestAuthObject.ha1, authInfo.nonce, authInfo.nc, authInfo.cnonce, authInfo.qop, digestAuthObject.ha2].join(':'));
-    digestAuthObject.response = resp;
-    
-    if (authInfo.response !== digestAuthObject.response) {
-        authenticateUserDigest(response); 
-        return false;
-    }
+        var authInfo = {};
+        authData.split(', ').forEach(function (d) {
+            d = d.split('=');
 
-    return true;
+            if(d.length === 2) {
+                authInfo[d[0]] = d[1].replace(/"/g, '');
+            }
+        });
+        //console.log(JSON.stringify(authInfo));
+        
+        if(authInfo.username === credentials.userName) {
+            var digestAuthObject = {};
+            digestAuthObject.ha1 = cryptoUsingMD5(authInfo.username + ':' + credentials.realm + ':' + credentials.password);
+            digestAuthObject.ha2 = cryptoUsingMD5(req.method + ':' + authInfo.uri);
+            var resp = cryptoUsingMD5([digestAuthObject.ha1, authInfo.nonce, authInfo.nc, authInfo.cnonce, authInfo.qop, digestAuthObject.ha2].join(':'));
+            digestAuthObject.response = resp;
+            
+            if(authInfo.response === digestAuthObject.response) {
+                // authenticated
+                return true;
+            }
+        }
+    }
+    
+    // not authenticated
+    
+    //console.log({ 'WWW-Authenticate': 'Digest realm="' + credentials.realm + '",qop="auth",nonce="' + Math.random() + '",opaque="' + hash + '"' });
+    res.writeHead(401, { 'WWW-Authenticate': 'Digest realm="' + credentials.realm + '",qop="auth",nonce="' + Math.random() + '",opaque="' + hash + '"' });
+    res.end('Authorization is needed.');
+    return false;
 }
 
 function authenticateIfNotAuthenticatedBasic(req, res) {
-    if(!req.headers.authorization) {
-        authenticateUserBasic(res); // 401
-        return false;
-    }
+    if(req.headers.authorization && req.headers.authorization.startsWith('Basic ')) {
+        var data = req.headers.authorization.substr(6);   // Split on a space, the original auth looks like  "Basic Y2hhcmxlczoxMjM0NQ==" and we need the 2nd part
+        var buf = new Buffer(data, 'base64'); // create a buffer and tell it the data coming in is base64
+        var plain_auth = buf.toString();	// read it back out as a string
 
-    var authInfo = parseAuthenticationInfoBasic(req);
-    
-    if (authInfo.username !== credentials.userName || 
-        authInfo.password !== credentials.password) 
-    {
-        authenticateUserBasic(res); 
-        return false;
+        //console.log("Decoded Authorization ", plain_auth);
+
+        var creds = plain_auth.split(':');      // split "username:password" 
+        var authInfo = {
+            username : creds[0],
+            password : creds[1]
+        }
+
+        if (authInfo.username === credentials.userName && authInfo.password === credentials.password) {
+            // authenticated
+            return true;
+        }
     }
     
-    return true;
-}
-
-function authenticateUserBasic(res) {
+    // not authenticated
+    
     res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Secure Area"' });
     res.end('<html><body>Authorization is needed.</body></html>');
+    return false;
 }
 
-function authenticateUserDigest(res) {
-    console.log({ 'WWW-Authenticate': 'Digest realm="' + credentials.realm + '",qop="auth",nonce="' + Math.random() + '",opaque="' + hash + '"' });
-    res.writeHead(401, { 'WWW-Authenticate': 'Digest realm="' + credentials.realm + '",qop="auth",nonce="' + Math.random() + '",opaque="' + hash + '"' });
-    res.end('Authorization is needed.');
-}
 
-function parseAuthenticationInfoBasic(req) {
-    var tmp = req.headers.authorization.split(' ');   // Split on a space, the original auth looks like  "Basic Y2hhcmxlczoxMjM0NQ==" and we need the 2nd part
 
-    var buf = new Buffer(tmp[1], 'base64'); // create a buffer and tell it the data coming in is base64
-    var plain_auth = buf.toString();	// read it back out as a string
-
-    console.log("Decoded Authorization ", plain_auth);
-
-    // At this point plain_auth = "username:password"
-
-    var creds = plain_auth.split(':');      // split on a ':'
-    var authInfo = {
-        username : creds[0],
-        password : creds[1]
-    }
-    
-    return authInfo;
-}
-    
-function parseAuthenticationInfoDigest(req) {
-    var authData = req.headers.authorization.replace(/^Digest /, '');
-    var authenticationObj = {};
-    authData.split(', ').forEach(function (d) {
-        d = d.split('=');
- 
-        authenticationObj[d[0]] = d[1].replace(/"/g, '');
-    });
-    console.log(JSON.stringify(authenticationObj));
-    return authenticationObj;
-}
 
