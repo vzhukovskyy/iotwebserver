@@ -1,6 +1,7 @@
 module.exports = {
     authenticateIfNotAuthenticated: function(req, res) {
-        return authenticateIfNotAuthenticatedDigest(req, res);
+        //return authenticateIfNotAuthenticatedDigest(req, res);
+        return authenticateIfNotAuthenticatedBasic(req, res);
     },
     
     
@@ -48,9 +49,27 @@ function authenticateIfNotAuthenticatedDigest(req, res) {
     return true;
 }
 
+function authenticateIfNotAuthenticatedBasic(req, res) {
+    if(!req.headers.authorization) {
+        authenticateUserBasic(res); // 401
+        return false;
+    }
+
+    var authInfo = parseAuthenticationInfoBasic(req);
+    
+    if (authInfo.username !== credentials.userName || 
+        authInfo.password !== credentials.password) 
+    {
+        authenticateUserBasic(res); 
+        return false;
+    }
+    
+    return true;
+}
+
 function authenticateUserBasic(res) {
-    res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="need login"' });
-    res.end('Authorization is needed.');
+    res.writeHead(401, { 'WWW-Authenticate': 'Basic realm="Secure Area"' });
+    res.end('<html><body>Authorization is needed.</body></html>');
 }
 
 function authenticateUserDigest(res) {
@@ -59,8 +78,8 @@ function authenticateUserDigest(res) {
     res.end('Authorization is needed.');
 }
 
-function parseAuthenticationInfoBasic(authData) {
-    var tmp = auth.split(' ');   // Split on a space, the original auth looks like  "Basic Y2hhcmxlczoxMjM0NQ==" and we need the 2nd part
+function parseAuthenticationInfoBasic(req) {
+    var tmp = req.headers.authorization.split(' ');   // Split on a space, the original auth looks like  "Basic Y2hhcmxlczoxMjM0NQ==" and we need the 2nd part
 
     var buf = new Buffer(tmp[1], 'base64'); // create a buffer and tell it the data coming in is base64
     var plain_auth = buf.toString();	// read it back out as a string
@@ -70,11 +89,16 @@ function parseAuthenticationInfoBasic(authData) {
     // At this point plain_auth = "username:password"
 
     var creds = plain_auth.split(':');      // split on a ':'
-    var username = creds[0];
-    var password = creds[1];
+    var authInfo = {
+        username : creds[0],
+        password : creds[1]
+    }
+    
+    return authInfo;
 }
     
-function parseAuthenticationInfoDigest(authData) {
+function parseAuthenticationInfoDigest(req) {
+    var authData = req.headers.authorization.replace(/^Digest /, '');
     var authenticationObj = {};
     authData.split(', ').forEach(function (d) {
         d = d.split('=');
