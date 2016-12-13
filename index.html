@@ -9,11 +9,22 @@
     <table>
         <tr>
             <td>
-                <label class='label'>Light:</label>
+                <label class='label'>Switch1:</label>
             </td>
             <td>
-                <label class="switch" id='myLabel' for='myCheckbox'>
-                    <input type="checkbox" id='myCheckbox'>
+                <label class="switch" id='myLabel1' for='myCheckbox1'>
+                    <input type="checkbox" id='myCheckbox1'>
+                    <div class="slider round"></div>
+                </label>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <label class='label'>Switch2:</label>
+            </td>
+            <td>
+                <label class="switch" id='myLabel2' for='myCheckbox2'>
+                    <input type="checkbox" id='myCheckbox2'>
                     <div class="slider round"></div>
                 </label>
             </td>
@@ -21,25 +32,36 @@
     </table>
     
     <script>
-        var myCheckbox = document.getElementById('myCheckbox');
-        myCheckbox.addEventListener('change', function(evt) {
-            console.log('change!', evt);
+        var myCheckbox1 = document.getElementById('myCheckbox1');
+        myCheckbox1.addEventListener('change', function(evt) {
+            sendRequestToSwitch(0, myCheckbox1.checked);
+        });
+
+        var myCheckbox2 = document.getElementById('myCheckbox2');
+        myCheckbox2.addEventListener('change', function(evt) {
+            sendRequestToSwitch(1, myCheckbox2.checked);
+        });
+        
+        httpGetAsync("/api/getSwitchState", function(json) {
+            var data = JSON.parse(json);
+            myCheckbox1.checked = (data[0] == 1);
+            myCheckbox2.checked = (data[1] == 1);
+        });
+
+        // functions
+        
+        function sendRequestToSwitch(index, state) {
             var req = new XMLHttpRequest();
             var url = "/api/setSwitchState";
-            var params = JSON.stringify({state:myCheckbox.checked});
+            var params = JSON.stringify({switch:index, state:state});
 //            var username = 'user';
 //            var password = 'password';
             req.open("POST", url, true/*, username, password*/); // -> http://user:pass@galileo:8080/...
 //            req.setRequestHeader("Authorization", "Basic " + btoa(username + ":" + password));  // encode string to Base64      
             req.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-            
-//            req.onreadystatechange = function() {//Call a function when the state changes.
-//            if(req.readyState == 4 && req.status == 200) {
-//                alert(req.responseText);
-//            }
                 
             req.send(params);
-        });
+        }
         
         function httpGetAsync(theUrl, callback) {
             var xmlHttp = new XMLHttpRequest();
@@ -51,10 +73,5 @@
             xmlHttp.send(null);
         }
         
-        httpGetAsync("/api/getSwitchState", function(json) {
-            var data = JSON.parse(json);
-            myCheckbox.checked = data.state;
-        });
-
     </script>
 </body>

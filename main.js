@@ -3,15 +3,12 @@
 /*jshint unused:true, undef:true */
 // see http://www.jslint.com/help.html and http://jshint.com/docs
 
-var mraa = require("mraa");
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
 var net = require('./nettools');
 var auth = require('./auth');
-
-var io = new mraa.Gpio(13, true, false);
-io.dir(mraa.DIR_OUT); // configure the LED gpio as an output
+var hw = require('./hardware');
 
 var pk = fs.readFileSync('/node_app_slot/privatekey.pem');
 var pc = fs.readFileSync('/node_app_slot/certificate.pem');
@@ -79,7 +76,7 @@ function handleApiCall(req, res) {
             var json = JSON.parse(jsonString);
             console.log(json);
             
-            io.write(json.state ? 1 : 0);
+            hw.write(json.switch, json.state);
             
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.write('<!doctype html><html><head><title>response</title></head><body>');
@@ -89,8 +86,8 @@ function handleApiCall(req, res) {
         
     }
     else if(req.method == 'GET') {
-        var state = io.read();
-        var jsonString = JSON.stringify({state: state});
+        var states = hw.read();
+        var jsonString = JSON.stringify(states);
 
         res.writeHead(200, {'Content-Type': 'application/json'});
         res.end(jsonString);

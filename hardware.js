@@ -1,4 +1,4 @@
-module.exports = {    
+module.exports = {
     write: function(index, state) {
         if(0 <= index && index <= 1) {
             io[index].write(state ? 1 : 0);
@@ -12,6 +12,6 @@ module.exports = {
 
 var mraa = require("mraa");
 
-var io = [new mraa.Gpio(11, true, false), new mraa.Gpio(12, true, false)];
+var io = [new mraa.Gpio(9, true, false), new mraa.Gpio(11, true, false)];
 io[0].dir(mraa.DIR_OUT); // configure the LED gpio as an output
 io[1].dir(mraa.DIR_OUT);
