@@ -28,3 +28,6 @@ Thumbs.db
 .hg
 .svn
 .CVS
+
+#
+ssl

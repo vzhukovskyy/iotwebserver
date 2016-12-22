@@ -46,8 +46,8 @@ function composeStateJson() {
 var scheduledTasks = {};
 
 function scheduleAutomaticTurnoff(switchNo, state) {
-    //var timeout = 15*1000;
-    var timeout = 15*60*60*1000;
+    var timeout = 15*1000;
+    //var timeout = 15*60*1000;
     if(state) {
         var timeoutId = setTimeout(function(){
             delete scheduledTasks[switchNo];
@@ -76,7 +76,8 @@ function scheduleAutomaticTurnoff(switchNo, state) {
 
 function getScheduledTurnoffs() {
     var sched = [];
-    sched.push(scheduledTasks[0] && scheduledTasks[0].at);
-    sched.push(scheduledTasks[1] && scheduledTasks[1].at);
+    var now = Date.now();
+    sched.push(scheduledTasks[0] && Math.ceil((scheduledTasks[0].at.getTime()-now)/1000));
+    sched.push(scheduledTasks[1] && Math.ceil((scheduledTasks[1].at.getTime()-now)/1000));
     return sched;
 }

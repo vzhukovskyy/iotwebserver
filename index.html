@@ -8,7 +8,7 @@
 <body>
     <div class='section'>
         <div class='labelSection'>
-            <div class='label'>Свет на улице</div>
+            <div class='label'>Світло на вулиці</div>
             <div class='status' id='switch1Info'></div>
         </div>
         <div class='buttonSection'>
@@ -21,7 +21,7 @@
 
     <div class='section'>
         <div class='labelSection'>
-            <div class='label'>Неподсоединенный выключатель</div>
+            <div class='label'>Непід'єднаний вимикач</div>
             <div class='status' id='switch2Info'></div>
         </div>
          <div class='buttonSection'>
@@ -95,23 +95,16 @@
         }
         
         function getSecondsToTurnoff(turnoff) {
-            if(turnoff) {
-                var delayMs = new Date(turnoff).getTime()-Date.now();
-                var seconds = 1+Math.ceil(delayMs/1000);
-                return seconds;
-            } 
-            else {
-                return 0;
-            }
+            return turnoff ? turnoff : 0;
         }
         function getInfoText(seconds) {
             if(seconds > 0) {
-                var minutes = Math.round(seconds/60);
+                var minutes = Math.floor(seconds/60);
                 var secondsLeft = seconds-minutes*60;
-                return  '(Выключится через '+minutes+' мин. '+secondsLeft+' сек.)';
+                return  '(Виключиться через '+minutes+' хв. '+secondsLeft+' сек.)';
             } 
             else {
-                return '(Выключен)';
+                return '(Виключений)';
             }
         }
         
@@ -124,14 +117,20 @@
             
             var totalSeconds = Math.max(seconds1, seconds2);
             if(totalSeconds > 0) {
-                setInterval(function() {
+                timerId = setInterval(function() {
                     if(totalSeconds >= 0) {
                         if(seconds1 >= 0) {
                             switch1Info.textContent = getInfoText(seconds1);
+                            if(seconds1 === 0) {
+                                myCheckbox1.checked = false;
+                            }
                             seconds1--;
                         }
                         if(seconds2 >= 0) {
                             switch2Info.textContent = getInfoText(seconds2);
+                            if(seconds2 === 0) {
+                                myCheckbox2.checked = false;
+                            }
                             seconds2--;
                         }
                         totalSeconds--;
