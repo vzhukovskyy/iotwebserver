@@ -19,31 +19,35 @@ handleApiCall: function(req, res) {
             
             hw.write(json.switch, json.state);
             scheduleAutomaticTurnoff(json.switch, json.state);
-            
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write('<!doctype html><html><head><title>response</title></head><body>');
-            res.write('Accepted request to change switch state to '+json.state);
-            res.end('</body></html>');
-        });
+
+            jsonString = composeStateJson();
+            res.writeHead(200, {'Content-Type': 'application/json'});
+            res.end(jsonString);
+         });
         
     }
     else if(req.method == 'GET') {
-        var states = hw.read();
-        var turnoffs = getScheduledTurnoffs();
-        var jsonString = JSON.stringify({states: states, turnoffs: turnoffs});
-
+        var jsonString = composeStateJson();
         res.writeHead(200, {'Content-Type': 'application/json'});
         res.end(jsonString);
         
     }
 }
 
-} // module.exports
+}; // module.exports
+
+function composeStateJson() {
+    var states = hw.read();
+    var turnoffs = getScheduledTurnoffs();
+    var jsonString = JSON.stringify({states: states, turnoffs: turnoffs});
+    return jsonString;
+}
 
 var scheduledTasks = {};
 
 function scheduleAutomaticTurnoff(switchNo, state) {
-    var timeout = 15*1000; //15*60*60*1000;
+    //var timeout = 15*1000;
+    var timeout = 15*60*60*1000;
     if(state) {
         var timeoutId = setTimeout(function(){
             delete scheduledTasks[switchNo];

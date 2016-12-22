@@ -8,7 +8,7 @@ var http = require('http');
 var https = require('https');
 var net = require('./nettools');
 var auth = require('./auth');
-var hw = require('./hardware');
+var controller = require('./controller.js');
 
 var privateKey = fs.readFileSync('/node_app_slot/ssl/server.pem');
 var certificate = fs.readFileSync('/node_app_slot/ssl/server.crt');
@@ -38,7 +38,7 @@ https.createServer(httpsOpts, function (req, res) {
     console.log('Request authorized');
     
     if(req.url.startsWith('/api/')) {
-        handleApiCall(req, res);
+        controller.handleApiCall(req, res);
     }
     else if (req.method == 'GET') {
         if (req.url.indexOf('.css') != -1) {
@@ -71,40 +71,4 @@ ipAddresses.forEach(function(ip) {
     console.log(ip+':'+httpPort);
     console.log(ip+':'+httpsPort);
 })
-
-return;
-
-function handleApiCall(req, res) {
-    var apiUrl = req.url.substr(5);
-    console.log('handling API call',apiUrl);
-    
-    if(req.method == 'POST') {
-        var jsonString = '';
-
-        req.on('data', function (data) {
-            jsonString += data;
-        });
-
-        req.on('end', function () {
-            var json = JSON.parse(jsonString);
-            console.log(json);
-            
-            hw.write(json.switch, json.state);
-            
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write('<!doctype html><html><head><title>response</title></head><body>');
-            res.write('Accepted request to change switch state to '+json.state);
-            res.end('</body></html>');
-        });
-        
-    }
-    else if(req.method == 'GET') {
-        var states = hw.read();
-        var jsonString = JSON.stringify(states);
-
-        res.writeHead(200, {'Content-Type': 'application/json'});
-        res.end(jsonString);
-        
-    }
-}
 
