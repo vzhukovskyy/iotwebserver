@@ -6,30 +6,32 @@
 </head>
 
 <body>
-    <table>
-        <tr>
-            <td>
-                <label class='label'>Switch1:</label>
-            </td>
-            <td>
-                <label class="switch" id='myLabel1' for='myCheckbox1'>
-                    <input type="checkbox" id='myCheckbox1'>
-                    <div class="slider round"></div>
-                </label>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <label class='label'>Switch2:</label>
-            </td>
-            <td>
-                <label class="switch" id='myLabel2' for='myCheckbox2'>
-                    <input type="checkbox" id='myCheckbox2'>
-                    <div class="slider round"></div>
-                </label>
-            </td>
-        </tr>
-    </table>
+    <div class='section'>
+        <div class='labelSection'>
+            <div class='label'>Свет на улице</div>
+            <div class='status' id='switch1Status'>(Выключится через 15 мин)</div>
+        </div>
+        <div class='buttonSection'>
+            <label class="switchButton" for='myCheckbox1'>
+                <input type="checkbox" id='myCheckbox1'>
+                <div class="slider round"></div>
+            </label>
+        </div>
+    </div>
+
+    <div class='section'>
+        <div class='labelSection'>
+            <div class='label'>Неподсоединенный выключатель</div>
+            <div class='status' id='switch2Status'>(Выключен)</div>
+        </div>
+         <div class='buttonSection'>
+             <label class="switchButton" for='myCheckbox2'>
+                <input type="checkbox" id='myCheckbox2'>
+                <div class="slider round"></div>
+            </label>
+        </div>
+    </div>
+
     
     <script>
         var myCheckbox1 = document.getElementById('myCheckbox1');

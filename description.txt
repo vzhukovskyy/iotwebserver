@@ -1,0 +1,6 @@
+1. add wifi router as DMZ server to ADSL modem 
+2. add port mapping 80 to galileo 80, 443 to galileo 443 in wifi router
+3. add routing rule to forward external ip to galileo from local network (to be able to reach server from within internal network)
+4. add network interface alias matching external ip to galileo. Add systemd service to add alias automatically 
+5. disable lighttpd service to free up port 80
+6. generate certificate accordingly to .url file

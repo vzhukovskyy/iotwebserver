@@ -10,16 +10,23 @@ var net = require('./nettools');
 var auth = require('./auth');
 var hw = require('./hardware');
 
-var pk = fs.readFileSync('/node_app_slot/privatekey.pem');
-var pc = fs.readFileSync('/node_app_slot/certificate.pem');
-var httpsOpts = { key: pk, cert: pc };
+var privateKey = fs.readFileSync('/node_app_slot/ssl/server.pem');
+var certificate = fs.readFileSync('/node_app_slot/ssl/server.crt');
+var ca = [fs.readFileSync('/node_app_slot/ssl/bundle_01.crt'), 
+          fs.readFileSync('/node_app_slot/ssl/bundle_02.crt'), 
+          fs.readFileSync('/node_app_slot/ssl/bundle_03.crt')];
+var httpsOpts = { key: privateKey, cert: certificate, ca: ca };
 
-var ipAddress = net.getAnyExternalIpAddress();
-var port = 8080;
+var httpPort = 80;
+var httpsPort = 443;
 
+// http server redirecting to https
+http.createServer(function(req, res){    
+    res.writeHead(302,  {Location: "https://rudiki.pp.ua"})
+    res.end();
+}).listen(httpPort); // listen all interfaces
 
-//https.createServer(httpsOpts, function (req, res) {
-http.createServer(function (req, res) {
+https.createServer(httpsOpts, function (req, res) {
     console.log('Handling request method',req.method,'url',req.url);
     console.log('Headers',req.headers);
     
@@ -56,9 +63,15 @@ http.createServer(function (req, res) {
         res.end();
     }
     
-}).listen(port, ipAddress);
+}).listen(httpsPort); // listen all interfaces
 
-console.log('Server listening on '+ipAddress+':'+port);
+console.log('Server listening on addresses');
+var ipAddresses = net.getExternalIpAddresses();
+ipAddresses.forEach(function(ip) {
+    console.log(ip+':'+httpPort);
+    console.log(ip+':'+httpsPort);
+})
+
 return;
 
 function handleApiCall(req, res) {

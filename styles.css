@@ -1,5 +1,5 @@
 /* The switch - the box around the slider */
-.switch {
+.switchButton {
   position: relative;
   display: inline-block;
   width: 60px;
@@ -7,7 +7,7 @@
 }
 
 /* Hide default HTML checkbox */
-.switch input {display:none;}
+.switchButton input {display:none;}
 
 /* The slider */
 .slider {
@@ -57,6 +57,30 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+.section {
+    position: relative;
+    margin: 16px 0 0 7px;
+    display: flex;
+    max-width: 500px;
+}
+
+.labelSection {
+    display: inline-block;
+    flex: 1;
+}
+
+.buttonSection {
+    display: inline-block;
+    width: 70px;
+}
+
 .label {
-  font-family: cursive;
+  font-family: sans-serif;
+  font-size: larger;
+  margin: 0 0 0 0;
+}
+
+.status {
+  font-family: sans-serif;
+  font-size: smaller;
 }

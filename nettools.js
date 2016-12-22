@@ -1,7 +1,7 @@
 module.exports = {
  
-    getAnyExternalIpAddress : function () {
-        var ip;
+    getExternalIpAddresses : function () {
+        var ips = [];
 
         var os = require('os');
         var ifaces = os.networkInterfaces();
@@ -10,14 +10,14 @@ module.exports = {
 
             ifaces[ifname].forEach(function (iface) {
                 if ('IPv4' === iface.family && iface.internal === false) {
-                    ip = iface.address;
+                    ips.push(iface.address);
                 }
             });
 
         });
 
-        console.log(ip);
-        return ip;
+        //console.log(ips);
+        return ips;
     }
 
 };
