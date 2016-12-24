@@ -57,7 +57,19 @@ input:checked + .slider:before {
   border-radius: 50%;
 }
 
+html {
+  height: 100%;
+}
+
+body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  margin: 0 8px 0 8px;
+}
+
 .section {
+    flex: content;
     position: relative;
     margin: 16px 0 0 7px;
     display: flex;
@@ -83,4 +95,21 @@ input:checked + .slider:before {
 .status {
   font-family: sans-serif;
   font-size: smaller;
+}
+
+.rest {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.rest a {
+  margin-top: auto;
+  align-self: center;
+  padding-bottom: 8px;
+}
+
+.geo {
+  font-family: sans-serif;
+  font-size: bigger;
 }

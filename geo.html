@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    
+<head>
+    <title>IoT Web Server Geo data</title>
+    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1" /> 
+</head>
+    
+<body>
+
+    <table class="geo">
+    <tr><td>Time     </td><td id="time">     </td></tr>
+    <tr><td>Latitude </td><td id="latitude"> </td></tr>
+    <tr><td>Longitude</td><td id="longitude"></td></tr>
+    </table>
+
+<script>
+    window.onload = function() {
+        navigator.geolocation.getCurrentPosition(geoLocationReceived, geoLocationFailed, {enableHighAccuracy:false});
+        var watchId = navigator.geolocation.watchPosition(geoLocationReceived);
+        setInterval(uploadGeoLocationToServer, 5*1000);
+    }
+    
+    var lastGeoPosition, lastGeoPositionUploaded;
+    
+    function geoLocationReceived(position) {
+        lastGeoPosition = position;
+        
+        document.getElementById('time').innerHTML = new Date(position.timestamp).toLocaleTimeString();
+        document.getElementById('latitude').innerHTML = position.coords.latitude;
+        document.getElementById('longitude').innerHTML = position.coords.longitude;
+    }
+    
+    function geoLocationFailed(error) {
+        console.log('Error occurred. Error code: ' + error.code);
+        // error.code can be:
+        //   0: unknown error
+        //   1: permission denied
+        //   2: position unavailable (error response from location provider)
+        //   3: timed out
+    }
+    
+    function uploadGeoLocationToServer() {
+        if(!lastGeoPositionUploaded || lastGeoPositionUploaded.timestamp !== lastGeoPosition.timestamp) {
+            sendGeoLocation(lastGeoPosition);
+            lastGeoPositionUploaded = lastGeoPosition;
+        }
+    }
+    
+    function sendGeoLocation(position) {
+        var req = new XMLHttpRequest();
+        var url = "/api/newGeoLocation";
+        var params = JSON.stringify(cloneAsObject(position));
+        req.open("POST", url, true);
+        req.setRequestHeader("Content-type", "application/json");
+        req.send(params);
+    }
+    
+    // http://stackoverflow.com/questions/11042212/ff-13-ie-9-json-stringify-geolocation-object
+    function cloneAsObject(obj) {
+        if (obj === null || !(obj instanceof Object)) {
+            return obj;
+        }
+        var temp = (obj instanceof Array) ? [] : {};
+        // ReSharper disable once MissingHasOwnPropertyInForeach
+        for (var key in obj) {
+            temp[key] = cloneAsObject(obj[key]);
+        }
+        return temp;
+    }
+
+</script>
+</body>
+</html>

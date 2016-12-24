@@ -12,6 +12,12 @@ module.exports = {
 
 var mraa = require("mraa");
 
-var io = [new mraa.Gpio(9, true, false), new mraa.Gpio(11, true, false)];
-io[0].dir(mraa.DIR_OUT); // configure the LED gpio as an output
+var io = [new mraa.Gpio(11, true, false), new mraa.Gpio(9, true, false)];
+
+// configure the LED gpio as an output
+io[0].dir(mraa.DIR_OUT); 
 io[1].dir(mraa.DIR_OUT);
+
+// just in case switch off everything
+io[0].write(0);
+io[1].write(0);

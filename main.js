@@ -53,6 +53,12 @@ https.createServer(httpsOpts, function (req, res) {
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.end(lightSensorPage);
         }
+        else if (req.url == '/geo') {
+            var geoPage = fs.readFileSync('/node_app_slot/geo.html', 'utf-8') ;
+
+            res.writeHead(200, {'Content-Type': 'text/html'});
+            res.end(geoPage);
+        }
         else {
             res.writeHead(410, {});
             res.end();

@@ -31,7 +31,10 @@
             </label>
         </div>
     </div>
-
+    
+    <div class='rest'>
+        <a href='/geo'>Geo</a>
+    </div>
     
     <script>
         var switch1Info = document.getElementById('switch1Info');
@@ -46,9 +49,7 @@
             sendRequestToSwitch(1, myCheckbox2.checked);
         });
         
-        httpGetAsync("/api/getSwitchState", function(json) {            
-            updateUi(json);
-        });
+        httpGetAsync("/api/getSwitchState", updateUi);
 
         // functions
         
@@ -80,8 +81,9 @@
             xmlHttp.send(null);
         }
         
-        function updateUi(json) {
-            var data = JSON.parse(json);
+        function updateUi(jsonString) {
+            console.log('updateUi',jsonString);
+            var data = JSON.parse(jsonString);            
             
             myCheckbox1.checked = (data.states[0] == 1);
             var secondsToTurnoffSwitch1 = getSecondsToTurnoff(data.turnoffs[0]);
@@ -101,10 +103,10 @@
             if(seconds > 0) {
                 var minutes = Math.floor(seconds/60);
                 var secondsLeft = seconds-minutes*60;
-                return  '(Виключиться через '+minutes+' хв. '+secondsLeft+' сек.)';
+                return  '(Вимкнеться через '+minutes+' хв. '+secondsLeft+' сек.)';
             } 
             else {
-                return '(Виключений)';
+                return '(Вимкнений)';
             }
         }
         
@@ -115,25 +117,30 @@
                 timerId = null;
             }
             
-            var totalSeconds = Math.max(seconds1, seconds2);
-            if(totalSeconds > 0) {
+            if(seconds1 > 0 || seconds2 > 0) {
+                var now = Date.now();
+                var switch1TurnoffTime = now + seconds1*1000;
+                var switch2TurnoffTime = now + seconds2*1000;
+                var latestTurnoffTime = Math.max(switch1TurnoffTime, switch2TurnoffTime);
+                
                 timerId = setInterval(function() {
-                    if(totalSeconds >= 0) {
-                        if(seconds1 >= 0) {
-                            switch1Info.textContent = getInfoText(seconds1);
-                            if(seconds1 === 0) {
-                                myCheckbox1.checked = false;
-                            }
-                            seconds1--;
+                    var now = Date.now();
+                    if(now <= latestTurnoffTime) {
+                        var secondsTillSwitch1Turnoff = Math.round((switch1TurnoffTime - now)/1000);
+                        if(secondsTillSwitch1Turnoff > 0) {
+                            switch1Info.textContent = getInfoText(secondsTillSwitch1Turnoff);                            
+                        } else {
+                            switch1Info.textContent = getInfoText(0); 
+                            myCheckbox1.checked = false;
                         }
-                        if(seconds2 >= 0) {
-                            switch2Info.textContent = getInfoText(seconds2);
-                            if(seconds2 === 0) {
-                                myCheckbox2.checked = false;
-                            }
-                            seconds2--;
+                        
+                        var secondsTillSwitch2Turnoff = Math.round((switch2TurnoffTime - now)/1000);
+                        if(secondsTillSwitch2Turnoff > 0) {
+                            switch2Info.textContent = getInfoText(secondsTillSwitch2Turnoff);                            
+                        } else {
+                            switch2Info.textContent = getInfoText(0); 
+                            myCheckbox2.checked = false;
                         }
-                        totalSeconds--;
                     }
                     else {
                         clearInterval(timerId);

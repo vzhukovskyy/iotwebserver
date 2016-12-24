@@ -17,10 +17,15 @@ handleApiCall: function(req, res) {
             var json = JSON.parse(jsonString);
             console.log(json);
             
-            hw.write(json.switch, json.state);
-            scheduleAutomaticTurnoff(json.switch, json.state);
+            if(req.url === '/api/setSwitchState') {
+                hw.write(json.switch, json.state);
+                scheduleAutomaticTurnoff(json.switch, json.state);
 
-            jsonString = composeStateJson();
+                jsonString = composeStateJson();
+            }
+            else if(req.url === '/api/newGeoLocation') {
+                jsonString = '{}';
+            }
             res.writeHead(200, {'Content-Type': 'application/json'});
             res.end(jsonString);
          });
@@ -46,8 +51,8 @@ function composeStateJson() {
 var scheduledTasks = {};
 
 function scheduleAutomaticTurnoff(switchNo, state) {
-    var timeout = 15*1000;
-    //var timeout = 15*60*1000;
+    //var timeout = 15*1000;
+    var timeout = 2*60*1000;
     if(state) {
         var timeoutId = setTimeout(function(){
             delete scheduledTasks[switchNo];
