@@ -2,20 +2,37 @@ module.exports = {
     authenticateIfNotAuthenticated: function(req, res) {
         return authenticateIfNotAuthenticatedDigest(req, res);
         //return authenticateIfNotAuthenticatedBasic(req, res);
-    },
-    
-    
+    }
 };
 
 var crypt = require('crypto');
+var fs = require('fs');
 
-var credentials = {
-    userName: 'user123',
-    password: 'pass123',
-    realm: 'Digest Authentication'
-};
-var hash = cryptoUsingMD5(credentials.realm);
+var userCredentials = readUserCredentials();
+console.log(userCredentials);
 
+var realm = 'Digest realm';
+var hash = cryptoUsingMD5(realm);
+
+function readUserCredentials() {
+    var buffer = fs.readFileSync('/node_app_slot/private-data/accounts.json', 'utf8');
+    if(!buffer) {
+        buffer = fs.readFileSync('/node_app_slot/generic-data/accounts.json', 'utf8');
+    }
+    return JSON.parse(buffer);
+}
+
+function findUserCredentials(username) {
+    var credentials;
+    userCredentials.find(function(cred) {
+        if(cred.username === username) {
+            credentials = cred;
+        }
+    });
+    
+    console.log('findUserCredentials:',credentials);
+    return credentials;
+}
 
 function cryptoUsingMD5(data) {
     return crypt.createHash('md5').update(data).digest('hex');
@@ -35,9 +52,10 @@ function authenticateIfNotAuthenticatedDigest(req, res) {
         });
         //console.log(JSON.stringify(authInfo));
         
-        if(authInfo.username === credentials.userName) {
+        var credentials = findUserCredentials(authInfo.username);
+        if(credentials) {
             var digestAuthObject = {};
-            digestAuthObject.ha1 = cryptoUsingMD5(authInfo.username + ':' + credentials.realm + ':' + credentials.password);
+            digestAuthObject.ha1 = cryptoUsingMD5(credentials.username + ':' + realm + ':' + credentials.password);
             digestAuthObject.ha2 = cryptoUsingMD5(req.method + ':' + authInfo.uri);
             var resp = cryptoUsingMD5([digestAuthObject.ha1, authInfo.nonce, authInfo.nc, authInfo.cnonce, authInfo.qop, digestAuthObject.ha2].join(':'));
             digestAuthObject.response = resp;
@@ -51,8 +69,7 @@ function authenticateIfNotAuthenticatedDigest(req, res) {
     
     // not authenticated
     
-    //console.log({ 'WWW-Authenticate': 'Digest realm="' + credentials.realm + '",qop="auth",nonce="' + Math.random() + '",opaque="' + hash + '"' });
-    res.writeHead(401, { 'WWW-Authenticate': 'Digest realm="' + credentials.realm + '",qop="auth",nonce="' + Math.random() + '",opaque="' + hash + '"' });
+    res.writeHead(401, { 'WWW-Authenticate': 'Digest realm="' + realm + '",qop="auth",nonce="' + Math.random() + '",opaque="' + hash + '"' });
     res.end('Authorization is needed.');
     return false;
 }
@@ -71,7 +88,7 @@ function authenticateIfNotAuthenticatedBasic(req, res) {
             password : creds[1]
         }
 
-        if (authInfo.username === credentials.userName && authInfo.password === credentials.password) {
+        if (authInfo.username === credentials.username && authInfo.password === credentials.password) {
             // authenticated
             return true;
         }

@@ -10,11 +10,11 @@ var net = require('./nettools');
 var auth = require('./auth');
 var controller = require('./controller.js');
 
-var privateKey = fs.readFileSync('/node_app_slot/ssl/server.pem');
-var certificate = fs.readFileSync('/node_app_slot/ssl/server.crt');
-var ca = [fs.readFileSync('/node_app_slot/ssl/bundle_01.crt'), 
-          fs.readFileSync('/node_app_slot/ssl/bundle_02.crt'), 
-          fs.readFileSync('/node_app_slot/ssl/bundle_03.crt')];
+var privateKey = fs.readFileSync('/node_app_slot/private-data/ssl/server.pem');
+var certificate = fs.readFileSync('/node_app_slot/private-data/ssl/server.crt');
+var ca = [fs.readFileSync('/node_app_slot/private-data/ssl/bundle_01.crt'), 
+          fs.readFileSync('/node_app_slot/private-data/ssl/bundle_02.crt'), 
+          fs.readFileSync('/node_app_slot/private-data/ssl/bundle_03.crt')];
 var httpsOpts = { key: privateKey, cert: certificate, ca: ca };
 
 var httpPort = 80;
