@@ -2,6 +2,20 @@ module.exports = {
     authenticateIfNotAuthenticated: function(req, res) {
         return authenticateIfNotAuthenticatedDigest(req, res);
         //return authenticateIfNotAuthenticatedBasic(req, res);
+    },
+    getUsername: function(req) {
+        if(!req) {
+            // special case for logging system activities
+            return 'system';
+        }
+        
+        var s = req.headers.authorization;
+        if(s) {
+            var startIndex = s.indexOf('username=');
+            var endIndex = s.indexOf(',', startIndex);
+            return s.substr(startIndex+10, endIndex-1-startIndex-10);
+        }
+        return '<unknown>';
     }
 };
 
@@ -9,7 +23,7 @@ var crypt = require('crypto');
 var fs = require('fs');
 
 var userCredentials = readUserCredentials();
-console.log(userCredentials);
+//console.log(userCredentials);
 
 var realm = 'Digest realm';
 var hash = cryptoUsingMD5(realm);
@@ -30,7 +44,7 @@ function findUserCredentials(username) {
         }
     });
     
-    console.log('findUserCredentials:',credentials);
+    //console.log('findUserCredentials:',credentials);
     return credentials;
 }
 

@@ -8,7 +8,8 @@ var http = require('http');
 var https = require('https');
 var net = require('./nettools');
 var auth = require('./auth');
-var controller = require('./controller.js');
+var controller = require('./controller');
+var logger = require('./logger');
 
 var privateKey = fs.readFileSync('/node_app_slot/private-data/ssl/server.pem');
 var certificate = fs.readFileSync('/node_app_slot/private-data/ssl/server.crt');
@@ -27,15 +28,15 @@ http.createServer(function(req, res){
 }).listen(httpPort); // listen all interfaces
 
 https.createServer(httpsOpts, function (req, res) {
-    console.log('Handling request method',req.method,'url',req.url);
-    console.log('Headers',req.headers);
+    //console.log('Handling request method',req.method,'url',req.url);
+    //console.log('Headers',req.headers);
     
     if(!auth.authenticateIfNotAuthenticated(req, res)) {
-        console.log('No authorization data, responded 401');
+        //console.log('No authorization data, responded 401');
         return;
     }
     
-    console.log('Request authorized');
+    //console.log('Request authorized');
     
     if(req.url.startsWith('/api/')) {
         controller.handleApiCall(req, res);
@@ -71,10 +72,11 @@ https.createServer(httpsOpts, function (req, res) {
     
 }).listen(httpsPort); // listen all interfaces
 
-console.log('Server listening on addresses');
+logger.logStartup();
+logger.log('Server listening on addresses');
 var ipAddresses = net.getExternalIpAddresses();
 ipAddresses.forEach(function(ip) {
-    console.log(ip+':'+httpPort);
-    console.log(ip+':'+httpsPort);
+    logger.log(ip+':'+httpPort);
+    logger.log(ip+':'+httpsPort);
 })
 
