@@ -53,8 +53,8 @@ function composeStateJson() {
 var scheduledTasks = {};
 
 function scheduleAutomaticTurnoff(switchNo, state) {
-    var timeout = 15*1000;
-    //var timeout = 10*60*1000;
+    //var timeout = 15*1000;
+    var timeout = 10*60*1000;
     if(state) {
         var timeoutId = setTimeout(function(){
             delete scheduledTasks[switchNo];
