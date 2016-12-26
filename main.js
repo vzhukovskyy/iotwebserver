@@ -60,6 +60,11 @@ https.createServer(httpsOpts, function (req, res) {
             res.writeHead(200, {'Content-Type': 'text/html'});
             res.end(geoPage);
         }
+        else if (req.url == '/home.png') {
+            var img = fs.readFileSync('/node_app_slot/home.png');
+            res.writeHead(200, {"Content-Type": "image/x-icon"});
+            res.end(img, 'binary');
+        }
         else {
             res.writeHead(410, {});
             res.end();
